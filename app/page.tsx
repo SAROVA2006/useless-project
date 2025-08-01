@@ -17,25 +17,20 @@ import "./enhanced-space-theme.css"
 
 export default function EnhancedAlienWeatherReporter() {
   const [selectedPlanet, setSelectedPlanet] = useState<string>("Mars")
-  const [previousPlanet, setPreviousPlanet] = useState<string>("Mars")
   const [currentWeather, setCurrentWeather] = useState(getEnhancedRandomWeather("Mars"))
   const [isLoading, setIsLoading] = useState(false)
   const [showWelcome, setShowWelcome] = useState(true)
-
   const {
     isAmbientPlaying,
     isPlanetSoundPlaying,
     currentPlanetSound,
     isAudioSupported,
     toggleAmbient,
-    playPlanetAtmosphere,
-    stopPlanetAtmosphere,
+    startPlanetSound,
+    stopPlanetSound,
     playPlanetTransition,
     playPlanetBeep,
-    playPlanetStatic,
-    setVolume,
-    setPlanetVolume,
-    stopAllSounds,
+    setVolumes,
   } = useEnhancedSpaceAudio()
 
   useEffect(() => {
@@ -43,23 +38,25 @@ export default function EnhancedAlienWeatherReporter() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Auto-play planet atmosphere when planet changes
+  // Auto-start planet sound when planet changes
   useEffect(() => {
-    if (!showWelcome && selectedPlanet && isAudioSupported) {
+    if (selectedPlanet && isAudioSupported) {
       const timer = setTimeout(() => {
-        playPlanetAtmosphere(selectedPlanet)
-      }, 500)
+        startPlanetSound(selectedPlanet)
+      }, 2000) // Start after transition completes
       return () => clearTimeout(timer)
     }
-  }, [selectedPlanet, showWelcome, isAudioSupported, playPlanetAtmosphere])
+  }, [selectedPlanet, isAudioSupported, startPlanetSound])
 
   const handlePlanetChange = (planetName: string) => {
     setIsLoading(true)
-    setPreviousPlanet(selectedPlanet)
     setSelectedPlanet(planetName)
 
-    // Play transition sound effect
-    playPlanetTransition(selectedPlanet, planetName)
+    // Play transition sound
+    playPlanetTransition(planetName)
+
+    // Stop current planet sound
+    stopPlanetSound()
 
     setTimeout(() => {
       setCurrentWeather(getEnhancedRandomWeather(planetName))
@@ -75,10 +72,6 @@ export default function EnhancedAlienWeatherReporter() {
       setCurrentWeather(getEnhancedRandomWeather(selectedPlanet))
       setIsLoading(false)
     }, 1000)
-  }
-
-  const handleHistoricalSound = () => {
-    playPlanetStatic(selectedPlanet)
   }
 
   const currentPlanet = getPlanetData(selectedPlanet)
@@ -111,29 +104,20 @@ export default function EnhancedAlienWeatherReporter() {
             <div className="w-64 h-2 bg-gray-800 rounded-full mx-auto overflow-hidden">
               <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
             </div>
-            <p className="text-purple-300 quantum-mono">🎵 Preparing planetary atmospheres...</p>
+            <p className="text-purple-300 quantum-mono">🎵 Loading planet-specific atmospheric sounds...</p>
           </div>
         </div>
       )}
 
-      {/* Enhanced Sound Toggle Button */}
+      {/* Quick Audio Toggle */}
       {isAudioSupported && (
-        <div className="fixed top-6 right-6 z-40 flex gap-2">
-          <button
-            onClick={toggleAmbient}
-            className="stellar-button flex items-center gap-2"
-            title={isAmbientPlaying ? "Mute cosmic ambience" : "Play cosmic ambience"}
-          >
-            {isAmbientPlaying ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            <span className="text-xs">AMBIENT</span>
-          </button>
-
-          {isPlanetSoundPlaying && (
-            <Badge className="bg-green-500/20 text-green-300 border-green-400 quantum-mono text-xs animate-pulse">
-              🎵 {selectedPlanet.toUpperCase()} ATMOSPHERE
-            </Badge>
-          )}
-        </div>
+        <button
+          onClick={toggleAmbient}
+          className="fixed top-6 right-6 z-40 stellar-button"
+          title={isAmbientPlaying ? "Mute cosmic ambience" : "Play cosmic ambience"}
+        >
+          {isAmbientPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        </button>
       )}
 
       <div className="max-w-7xl mx-auto space-y-8">
@@ -170,6 +154,30 @@ export default function EnhancedAlienWeatherReporter() {
           <p className="text-sm text-purple-300 quantum-mono">
             📅 Earth Date: {earthDate} | 🌍 You are safely on Earth (thank the cosmos)
           </p>
+
+          {/* Audio Status Indicator */}
+          {isAudioSupported && (
+            <div className="flex justify-center items-center gap-4 text-sm quantum-mono">
+              <Badge
+                className={
+                  isAmbientPlaying
+                    ? "text-green-400 border-green-400 bg-green-400/10"
+                    : "text-gray-500 border-gray-500 bg-gray-500/10"
+                }
+              >
+                🌌 Ambient: {isAmbientPlaying ? "ON" : "OFF"}
+              </Badge>
+              <Badge
+                className={
+                  isPlanetSoundPlaying
+                    ? "text-orange-400 border-orange-400 bg-orange-400/10"
+                    : "text-gray-500 border-gray-500 bg-gray-500/10"
+                }
+              >
+                🪐 Planet Audio: {isPlanetSoundPlaying ? currentPlanetSound : "OFF"}
+              </Badge>
+            </div>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
@@ -227,26 +235,56 @@ export default function EnhancedAlienWeatherReporter() {
               </CardContent>
             </Card>
 
-            {/* Audio Control Panel */}
-            <AudioControlPanel
-              isAmbientPlaying={isAmbientPlaying}
-              isPlanetSoundPlaying={isPlanetSoundPlaying}
-              currentPlanetSound={currentPlanetSound}
-              isAudioSupported={isAudioSupported}
-              onToggleAmbient={toggleAmbient}
-              onPlayPlanetAtmosphere={playPlanetAtmosphere}
-              onStopPlanetAtmosphere={stopPlanetAtmosphere}
-              onSetVolume={setVolume}
-              onSetPlanetVolume={setPlanetVolume}
-              onStopAllSounds={stopAllSounds}
-              selectedPlanet={selectedPlanet}
-            />
+            {/* Enhanced Audio Control Panel */}
+            {isAudioSupported && (
+              <AudioControlPanel
+                isAmbientPlaying={isAmbientPlaying}
+                isPlanetSoundPlaying={isPlanetSoundPlaying}
+                currentPlanetSound={currentPlanetSound}
+                selectedPlanet={selectedPlanet}
+                onToggleAmbient={toggleAmbient}
+                onStartPlanetSound={startPlanetSound}
+                onStopPlanetSound={stopPlanetSound}
+                onVolumeChange={setVolumes}
+              />
+            )}
 
             {/* Enhanced Space Map */}
             <SpaceMap />
 
             {/* Historical Weather */}
-            <HistoricalWeather selectedPlanet={selectedPlanet} onPlaySound={handleHistoricalSound} />
+            <HistoricalWeather selectedPlanet={selectedPlanet} onPlaySound={() => playPlanetBeep(selectedPlanet)} />
+
+            {/* Enhanced Stats */}
+            <Card className="plasma-card">
+              <CardHeader>
+                <CardTitle className="text-white quantum-mono text-sm">📊 COSMIC STATISTICS</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs quantum-mono">
+                <div className="flex justify-between text-purple-300">
+                  <span>Alien weather checks:</span>
+                  <span className="text-green-400">∞ (Too many)</span>
+                </div>
+                <div className="flex justify-between text-purple-300">
+                  <span>Survival chance on {selectedPlanet}:</span>
+                  <span className="text-red-400">0.000000001%</span>
+                </div>
+                <div className="flex justify-between text-purple-300">
+                  <span>Audio immersion level:</span>
+                  <span className={isPlanetSoundPlaying ? "text-green-400" : "text-yellow-400"}>
+                    {isPlanetSoundPlaying ? "Maximum" : "Partial"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-purple-300">
+                  <span>Information usefulness:</span>
+                  <span className="text-red-400">Absolutely zero</span>
+                </div>
+                <div className="flex justify-between text-purple-300">
+                  <span>Entertainment value:</span>
+                  <span className="text-green-400">Cosmically high!</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Main Content - Weather Display */}
@@ -268,9 +306,9 @@ export default function EnhancedAlienWeatherReporter() {
                     <Badge className={`${getSeverityColor(currentWeather.severity)} bg-black/30 border-2 quantum-mono`}>
                       {currentWeather.severity.toUpperCase()}
                     </Badge>
-                    {isPlanetSoundPlaying && currentPlanetSound === selectedPlanet.toLowerCase() && (
-                      <Badge className="bg-green-500/20 text-green-300 border-green-400 quantum-mono text-xs animate-pulse">
-                        🎵 ATMOSPHERE ACTIVE
+                    {isPlanetSoundPlaying && (
+                      <Badge className="text-orange-400 border-orange-400 bg-orange-400/10 quantum-mono text-xs">
+                        🎵 ATMOSPHERIC AUDIO ACTIVE
                       </Badge>
                     )}
                   </div>
@@ -287,12 +325,12 @@ export default function EnhancedAlienWeatherReporter() {
                     <p className="text-white quantum-mono mt-6 text-xl data-stream">
                       DOWNLOADING USELESS COSMIC DATA...
                     </p>
-                    <p className="text-purple-300 quantum-mono mt-2 text-sm">
-                      🎵 Preparing {selectedPlanet} atmospheric sounds...
-                    </p>
                     <div className="w-64 h-2 bg-gray-800 rounded-full mx-auto mt-4 overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full data-stream"></div>
                     </div>
+                    <p className="text-purple-300 quantum-mono mt-4 text-sm">
+                      🎵 Preparing {selectedPlanet} atmospheric audio...
+                    </p>
                   </div>
                 ) : (
                   <>
@@ -476,9 +514,6 @@ export default function EnhancedAlienWeatherReporter() {
             <p className="text-sm text-purple-500 nebula-text">
               Made with ❤️, cosmic creativity, and a complete disregard for scientific accuracy.
             </p>
-            <p className="text-xs text-purple-600 quantum-mono">
-              🎵 Enhanced with immersive planetary atmospheric sounds for maximum cosmic experience.
-            </p>
             <div className="flex justify-center items-center gap-4 text-2xl">
               <span className="animate-spin">🛸</span>
               <span className="animate-pulse">👽</span>
@@ -486,6 +521,11 @@ export default function EnhancedAlienWeatherReporter() {
               <span className="animate-spin">🪐</span>
               <span className="animate-pulse">⭐</span>
             </div>
+            {isAudioSupported && (
+              <p className="text-xs text-purple-400 quantum-mono">
+                🎵 Enhanced with planet-specific atmospheric audio for maximum cosmic immersion
+              </p>
+            )}
           </div>
         </div>
       </div>

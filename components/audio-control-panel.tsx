@@ -5,65 +5,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, RotateCcw } from "lucide-react"
+import { Volume2, VolumeX, Play, Pause, Music, Waves } from "lucide-react"
 
 interface AudioControlPanelProps {
   isAmbientPlaying: boolean
   isPlanetSoundPlaying: boolean
   currentPlanetSound: string | null
-  isAudioSupported: boolean
-  onToggleAmbient: () => void
-  onPlayPlanetAtmosphere: (planet: string) => void
-  onStopPlanetAtmosphere: () => void
-  onSetVolume: (volume: number) => void
-  onSetPlanetVolume: (volume: number) => void
-  onStopAllSounds: () => void
   selectedPlanet: string
+  onToggleAmbient: () => void
+  onStartPlanetSound: (planet: string) => void
+  onStopPlanetSound: () => void
+  onVolumeChange: (ambient: number, planet: number) => void
 }
 
 export function AudioControlPanel({
   isAmbientPlaying,
   isPlanetSoundPlaying,
   currentPlanetSound,
-  isAudioSupported,
-  onToggleAmbient,
-  onPlayPlanetAtmosphere,
-  onStopPlanetAtmosphere,
-  onSetVolume,
-  onSetPlanetVolume,
-  onStopAllSounds,
   selectedPlanet,
+  onToggleAmbient,
+  onStartPlanetSound,
+  onStopPlanetSound,
+  onVolumeChange,
 }: AudioControlPanelProps) {
   const [ambientVolume, setAmbientVolume] = useState([30])
   const [planetVolume, setPlanetVolume] = useState([40])
 
-  if (!isAudioSupported) {
-    return (
-      <Card className="cosmic-card">
-        <CardContent className="text-center py-6">
-          <div className="text-4xl mb-2">🔇</div>
-          <p className="text-purple-300 quantum-mono text-sm">Audio not supported in this browser</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const handleAmbientVolumeChange = (value: number[]) => {
     setAmbientVolume(value)
-    onSetVolume(value[0] / 100)
+    onVolumeChange(value[0] / 100, planetVolume[0] / 100)
   }
 
   const handlePlanetVolumeChange = (value: number[]) => {
     setPlanetVolume(value)
-    onSetPlanetVolume(value[0] / 100)
+    onVolumeChange(ambientVolume[0] / 100, value[0] / 100)
   }
 
-  const planetSoundNames: { [key: string]: string } = {
-    mars: "Martian Winds",
-    venus: "Hellish Atmosphere",
-    jupiter: "Storm Chaos",
-    europa: "Ice Symphony",
-    titan: "Methane Rain",
+  const getPlanetSoundDescription = (planet: string) => {
+    const descriptions: { [key: string]: string } = {
+      Mars: "Dusty winds & desolate howling",
+      Venus: "Hellish rumbles & acid bubbling",
+      Jupiter: "Massive storms & deep pressure",
+      Europa: "Ice cracking & geyser eruptions",
+      Titan: "Methane rain & alien ambience",
+    }
+    return descriptions[planet] || "Cosmic atmosphere"
   }
 
   return (
@@ -72,106 +58,131 @@ export function AudioControlPanel({
         <CardTitle className="text-white flex items-center gap-2 quantum-mono">🎵 COSMIC AUDIO CONTROL</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Ambient Controls */}
+        {/* Ambient Space Sound */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-purple-200 quantum-mono text-sm">SPACE AMBIENCE</span>
-            <Badge variant={isAmbientPlaying ? "default" : "secondary"} className="quantum-mono text-xs">
-              {isAmbientPlaying ? "PLAYING" : "STOPPED"}
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button onClick={onToggleAmbient} size="sm" className="stellar-button flex items-center gap-2">
-              {isAmbientPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              {isAmbientPlaying ? "PAUSE" : "PLAY"}
-            </Button>
-
-            <div className="flex-1">
-              <Slider
-                value={ambientVolume}
-                onValueChange={handleAmbientVolumeChange}
-                max={100}
-                step={1}
-                className="w-full"
-              />
+            <div className="flex items-center gap-2">
+              <Waves className="w-4 h-4 text-purple-400" />
+              <span className="text-sm quantum-mono text-purple-200">AMBIENT SPACE</span>
             </div>
-
-            <span className="text-purple-300 quantum-mono text-xs w-8">{ambientVolume[0]}%</span>
-          </div>
-        </div>
-
-        {/* Planet Atmosphere Controls */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-purple-200 quantum-mono text-sm">PLANET ATMOSPHERE</span>
-            <Badge variant={isPlanetSoundPlaying ? "default" : "secondary"} className="quantum-mono text-xs">
-              {isPlanetSoundPlaying ? "PLAYING" : "STOPPED"}
-            </Badge>
-          </div>
-
-          {currentPlanetSound && (
-            <div className="text-center">
-              <Badge variant="outline" className="text-purple-300 border-purple-400 quantum-mono text-xs">
-                {planetSoundNames[currentPlanetSound.toLowerCase()] || currentPlanetSound}
-              </Badge>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
             <Button
-              onClick={() => onPlayPlanetAtmosphere(selectedPlanet)}
-              size="sm"
-              className="stellar-button flex items-center gap-2"
-              disabled={isPlanetSoundPlaying && currentPlanetSound === selectedPlanet}
-            >
-              <Play className="w-4 h-4" />
-              PLAY
-            </Button>
-
-            <Button
-              onClick={onStopPlanetAtmosphere}
               size="sm"
               variant="outline"
-              className="border-red-500 text-red-300 hover:bg-red-500/20 quantum-mono bg-transparent"
-              disabled={!isPlanetSoundPlaying}
+              onClick={onToggleAmbient}
+              className="border-purple-500 text-purple-300 hover:bg-purple-500/20 bg-transparent"
             >
-              <Pause className="w-4 h-4" />
-              STOP
+              {isAmbientPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
-
-            <div className="flex-1">
-              <Slider
-                value={planetVolume}
-                onValueChange={handlePlanetVolumeChange}
-                max={100}
-                step={1}
-                className="w-full"
-              />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs quantum-mono text-purple-300">
+              <span>Volume</span>
+              <span>{ambientVolume[0]}%</span>
             </div>
+            <Slider
+              value={ambientVolume}
+              onValueChange={handleAmbientVolumeChange}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          {isAmbientPlaying && (
+            <Badge className="text-green-400 border-green-400 bg-green-400/10">🌌 Deep space ambience active</Badge>
+          )}
+        </div>
 
-            <span className="text-purple-300 quantum-mono text-xs w-8">{planetVolume[0]}%</span>
+        {/* Planet-Specific Sound */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4 text-orange-400" />
+              <span className="text-sm quantum-mono text-orange-200">PLANET ATMOSPHERE</span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (isPlanetSoundPlaying) {
+                  onStopPlanetSound()
+                } else {
+                  onStartPlanetSound(selectedPlanet)
+                }
+              }}
+              className="border-orange-500 text-orange-300 hover:bg-orange-500/20 bg-transparent"
+            >
+              {isPlanetSoundPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs quantum-mono text-orange-300">
+              <span>Volume</span>
+              <span>{planetVolume[0]}%</span>
+            </div>
+            <Slider
+              value={planetVolume}
+              onValueChange={handlePlanetVolumeChange}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          {isPlanetSoundPlaying && currentPlanetSound && (
+            <div className="space-y-2">
+              <Badge className="text-orange-400 border-orange-400 bg-orange-400/10">
+                🪐 {currentPlanetSound} atmosphere active
+              </Badge>
+              <p className="text-xs quantum-mono text-orange-300">{getPlanetSoundDescription(currentPlanetSound)}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Audio Status */}
+        <div className="pt-3 border-t border-white/20">
+          <div className="grid grid-cols-2 gap-2 text-xs quantum-mono">
+            <div className="flex items-center gap-2">
+              {isAmbientPlaying ? (
+                <Volume2 className="w-3 h-3 text-green-400" />
+              ) : (
+                <VolumeX className="w-3 h-3 text-gray-500" />
+              )}
+              <span className={isAmbientPlaying ? "text-green-400" : "text-gray-500"}>Ambient</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isPlanetSoundPlaying ? (
+                <Volume2 className="w-3 h-3 text-orange-400" />
+              ) : (
+                <VolumeX className="w-3 h-3 text-gray-500" />
+              )}
+              <span className={isPlanetSoundPlaying ? "text-orange-400" : "text-gray-500"}>Planet</span>
+            </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button
-            onClick={onStopAllSounds}
             size="sm"
             variant="outline"
-            className="border-orange-500 text-orange-300 hover:bg-orange-500/20 quantum-mono bg-transparent flex items-center gap-2"
+            onClick={() => {
+              onToggleAmbient()
+              onStartPlanetSound(selectedPlanet)
+            }}
+            className="border-green-500 text-green-300 hover:bg-green-500/20 bg-transparent text-xs quantum-mono"
           >
-            <RotateCcw className="w-4 h-4" />
-            STOP ALL
+            🎵 FULL IMMERSION
           </Button>
-        </div>
-
-        {/* Audio Info */}
-        <div className="text-xs text-purple-400 quantum-mono space-y-1">
-          <p>🎧 Use headphones for the best cosmic experience</p>
-          <p>🔊 Each planet has unique atmospheric sounds</p>
-          <p>🌌 Ambient space hum provides cosmic background</p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (isAmbientPlaying) onToggleAmbient()
+              if (isPlanetSoundPlaying) onStopPlanetSound()
+            }}
+            className="border-red-500 text-red-300 hover:bg-red-500/20 bg-transparent text-xs quantum-mono"
+          >
+            🔇 SILENCE ALL
+          </Button>
         </div>
       </CardContent>
     </Card>

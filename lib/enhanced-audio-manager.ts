@@ -22,13 +22,13 @@ export class EnhancedSpaceAudioManager {
   }
 
   // Create Mars atmospheric sound - windy, dusty, desolate
-  private createMarsAtmosphere(): AudioBufferSourceNode | null {
+  private createMarsSound(): AudioBufferSourceNode | null {
     if (!this.audioContext) return null
 
     const bufferSize = this.audioContext.sampleRate * 8
     const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate)
-    const leftChannel = buffer.getChannelData(0)
-    const rightChannel = buffer.getChannelData(1)
+    const leftData = buffer.getChannelData(0)
+    const rightData = buffer.getChannelData(1)
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
@@ -45,21 +45,21 @@ export class EnhancedSpaceAudioManager {
 
       const marsSound = (windBase + windVariation + dustNoise + rumble) * this.planetVolume
 
-      leftChannel[i] = marsSound
-      rightChannel[i] = marsSound * 0.9 // Slight stereo variation
+      leftData[i] = marsSound
+      rightData[i] = marsSound * 0.9 // Slight stereo variation
     }
 
     return this.createSourceFromBuffer(buffer, "lowpass", 800)
   }
 
   // Create Venus atmospheric sound - hellish, bubbling, intense heat
-  private createVenusAtmosphere(): AudioBufferSourceNode | null {
+  private createVenusSound(): AudioBufferSourceNode | null {
     if (!this.audioContext) return null
 
     const bufferSize = this.audioContext.sampleRate * 6
     const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate)
-    const leftChannel = buffer.getChannelData(0)
-    const rightChannel = buffer.getChannelData(1)
+    const leftData = buffer.getChannelData(0)
+    const rightData = buffer.getChannelData(1)
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
@@ -79,59 +79,55 @@ export class EnhancedSpaceAudioManager {
 
       const venusSound = (hellRumble + deepRumble + bubbling + heatShimmer + volcanic) * this.planetVolume
 
-      leftChannel[i] = venusSound
-      rightChannel[i] = venusSound * 1.1 // Stereo variation
+      leftData[i] = venusSound
+      rightData[i] = venusSound * 1.1
     }
 
-    return this.createSourceFromBuffer(buffer, "bandpass", 200, 2000)
+    return this.createSourceFromBuffer(buffer, "bandpass", 200)
   }
 
   // Create Jupiter atmospheric sound - massive storms, deep rumbles
-  private createJupiterAtmosphere(): AudioBufferSourceNode | null {
+  private createJupiterSound(): AudioBufferSourceNode | null {
     if (!this.audioContext) return null
 
     const bufferSize = this.audioContext.sampleRate * 10
     const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate)
-    const leftChannel = buffer.getChannelData(0)
-    const rightChannel = buffer.getChannelData(1)
+    const leftData = buffer.getChannelData(0)
+    const rightData = buffer.getChannelData(1)
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
 
-      // Massive storm rumbles
-      const stormRumble = Math.sin(2 * Math.PI * 20 * time) * 0.25
-      const deepStorm = Math.sin(2 * Math.PI * 8 * time) * 0.2
+      // Massive storm winds
+      const stormWind = Math.sin(2 * Math.PI * 0.1 * time) * 0.25
+      const windGusts = Math.sin(2 * Math.PI * 0.8 * time) * 0.15
 
       // Great Red Spot swirling
-      const redSpotSwirl = Math.sin(2 * Math.PI * 0.1 * time) * Math.sin(2 * Math.PI * 60 * time) * 0.1
+      const redSpotSwirl = Math.sin(2 * Math.PI * 1.2 * time) * 0.1 * Math.sin(2 * Math.PI * 0.3 * time)
 
-      // Atmospheric pressure waves
-      const pressureWaves = Math.sin(2 * Math.PI * 0.3 * time) * 0.15
+      // Deep atmospheric pressure
+      const deepPressure = Math.sin(2 * Math.PI * 20 * time) * 0.18
 
       // Lightning in the distance
       const lightning = (Math.random() - 0.5) * 0.08 * (Math.random() > 0.98 ? 1 : 0)
 
-      // Gas giant whooshing
-      const gasWhoosh = Math.sin(2 * Math.PI * 100 * time) * 0.03 * Math.sin(2 * Math.PI * 0.8 * time)
+      const jupiterSound = (stormWind + windGusts + redSpotSwirl + deepPressure + lightning) * this.planetVolume
 
-      const jupiterSound =
-        (stormRumble + deepStorm + redSpotSwirl + pressureWaves + lightning + gasWhoosh) * this.planetVolume
-
-      leftChannel[i] = jupiterSound
-      rightChannel[i] = jupiterSound * 0.8 // Stereo variation
+      leftData[i] = jupiterSound
+      rightData[i] = jupiterSound * 0.95
     }
 
     return this.createSourceFromBuffer(buffer, "lowpass", 400)
   }
 
   // Create Europa atmospheric sound - ice cracking, geysers, underwater echoes
-  private createEuropaAtmosphere(): AudioBufferSourceNode | null {
+  private createEuropaSound(): AudioBufferSourceNode | null {
     if (!this.audioContext) return null
 
     const bufferSize = this.audioContext.sampleRate * 12
     const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate)
-    const leftChannel = buffer.getChannelData(0)
-    const rightChannel = buffer.getChannelData(1)
+    const leftData = buffer.getChannelData(0)
+    const rightData = buffer.getChannelData(1)
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
@@ -140,65 +136,60 @@ export class EnhancedSpaceAudioManager {
       const iceCrack = (Math.random() - 0.5) * 0.1 * (Math.random() > 0.95 ? 1 : 0)
 
       // Geyser eruptions
-      const geyserBase = Math.sin(2 * Math.PI * 200 * time) * 0.06
-      const geyserBurst = geyserBase * Math.sin(2 * Math.PI * 0.1 * time)
+      const geyser = Math.sin(2 * Math.PI * 0.05 * time) * 0.12 * Math.sin(2 * Math.PI * 200 * time) * 0.3
 
-      // Underwater echoes (subsurface ocean)
-      const underwaterEcho = Math.sin(2 * Math.PI * 80 * time) * 0.08 * Math.sin(2 * Math.PI * 0.2 * time)
+      // Underwater ocean sounds
+      const oceanEcho = Math.sin(2 * Math.PI * 80 * time) * 0.08 * Math.sin(2 * Math.PI * 0.2 * time)
 
-      // Tidal forces (gravitational stress)
-      const tidalStress = Math.sin(2 * Math.PI * 0.05 * time) * 0.12
+      // Tidal forces
+      const tidalForce = Math.sin(2 * Math.PI * 0.1 * time) * 0.06
 
       // Crystalline resonance
-      const crystalResonance = Math.sin(2 * Math.PI * 440 * time) * 0.02 * Math.sin(2 * Math.PI * 0.3 * time)
+      const crystalResonance = Math.sin(2 * Math.PI * 440 * time) * 0.02 * Math.sin(2 * Math.PI * 0.4 * time)
 
-      const europaSound = (iceCrack + geyserBurst + underwaterEcho + tidalStress + crystalResonance) * this.planetVolume
+      const europaSound = (iceCrack + geyser + oceanEcho + tidalForce + crystalResonance) * this.planetVolume
 
-      leftChannel[i] = europaSound
-      rightChannel[i] = europaSound * 1.2 // Stereo variation
+      leftData[i] = europaSound
+      rightData[i] = europaSound * 1.05
     }
 
-    return this.createSourceFromBuffer(buffer, "bandpass", 100, 1000)
+    return this.createSourceFromBuffer(buffer, "bandpass", 300)
   }
 
-  // Create Titan atmospheric sound - methane rain, thick atmosphere, alien winds
-  private createTitanAtmosphere(): AudioBufferSourceNode | null {
+  // Create Titan atmospheric sound - methane rain, thick atmosphere, alien ambience
+  private createTitanSound(): AudioBufferSourceNode | null {
     if (!this.audioContext) return null
 
     const bufferSize = this.audioContext.sampleRate * 9
     const buffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate)
-    const leftChannel = buffer.getChannelData(0)
-    const rightChannel = buffer.getChannelData(1)
+    const leftData = buffer.getChannelData(0)
+    const rightData = buffer.getChannelData(1)
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
 
       // Methane rain drops
-      const methaneRain = (Math.random() - 0.5) * 0.04 * Math.sin(2 * Math.PI * 5 * time)
+      const methaneRain = (Math.random() - 0.5) * 0.06 * Math.sin(2 * Math.PI * 5 * time)
 
       // Thick atmospheric pressure
-      const thickAtmosphere = Math.sin(2 * Math.PI * 25 * time) * 0.18
-
-      // Alien wind patterns
-      const alienWind = Math.sin(2 * Math.PI * 0.4 * time) * Math.sin(2 * Math.PI * 120 * time) * 0.1
+      const thickAtmosphere = Math.sin(2 * Math.PI * 60 * time) * 0.12
 
       // Hydrocarbon lakes lapping
-      const lakeLapping = Math.sin(2 * Math.PI * 0.8 * time) * 0.06
+      const lakeLapping = Math.sin(2 * Math.PI * 0.3 * time) * 0.08
 
-      // Nitrogen atmosphere density
-      const nitrogenDensity = Math.sin(2 * Math.PI * 50 * time) * 0.05 * Math.sin(2 * Math.PI * 0.15 * time)
+      // Nitrogen winds
+      const nitrogenWind = Math.sin(2 * Math.PI * 0.6 * time) * 0.1
 
-      // Mysterious alien ambience
-      const alienAmbience = Math.sin(2 * Math.PI * 300 * time) * 0.03 * Math.sin(2 * Math.PI * 0.7 * time)
+      // Alien ambience (mysterious tones)
+      const alienTone = Math.sin(2 * Math.PI * 220 * time) * 0.03 * Math.sin(2 * Math.PI * 0.15 * time)
 
-      const titanSound =
-        (methaneRain + thickAtmosphere + alienWind + lakeLapping + nitrogenDensity + alienAmbience) * this.planetVolume
+      const titanSound = (methaneRain + thickAtmosphere + lakeLapping + nitrogenWind + alienTone) * this.planetVolume
 
-      leftChannel[i] = titanSound
-      rightChannel[i] = titanSound * 0.95 // Stereo variation
+      leftData[i] = titanSound
+      rightData[i] = titanSound * 0.92
     }
 
-    return this.createSourceFromBuffer(buffer, "bandpass", 150, 800)
+    return this.createSourceFromBuffer(buffer, "lowpass", 600)
   }
 
   // Helper method to create audio source with filtering
@@ -206,31 +197,24 @@ export class EnhancedSpaceAudioManager {
     buffer: AudioBuffer,
     filterType: BiquadFilterType,
     frequency: number,
-    frequency2?: number,
-  ): AudioBufferSourceNode {
-    const source = this.audioContext!.createBufferSource()
+  ): AudioBufferSourceNode | null {
+    if (!this.audioContext) return null
+
+    const source = this.audioContext.createBufferSource()
     source.buffer = buffer
     source.loop = true
 
-    const filter = this.audioContext!.createBiquadFilter()
+    const filter = this.audioContext.createBiquadFilter()
     filter.type = filterType
     filter.frequency.value = frequency
     filter.Q.value = 1
 
-    const gainNode = this.audioContext!.createGain()
+    const gainNode = this.audioContext.createGain()
     gainNode.gain.value = this.planetVolume
-
-    if (filterType === "bandpass" && frequency2) {
-      // For bandpass filters, set Q to create the desired bandwidth
-      const centerFreq = Math.sqrt(frequency * frequency2)
-      const bandwidth = frequency2 - frequency
-      filter.frequency.value = centerFreq
-      filter.Q.value = centerFreq / bandwidth
-    }
 
     source.connect(filter)
     filter.connect(gainNode)
-    gainNode.connect(this.audioContext!.destination)
+    gainNode.connect(this.audioContext.destination)
 
     return source
   }
@@ -245,8 +229,8 @@ export class EnhancedSpaceAudioManager {
 
     for (let i = 0; i < bufferSize; i++) {
       const time = i / this.audioContext.sampleRate
-      const baseHum = Math.sin(2 * Math.PI * 60 * time) * 0.08
-      const variation = Math.sin(2 * Math.PI * 0.3 * time) * 0.04
+      const baseHum = Math.sin(2 * Math.PI * 55 * time) * 0.08
+      const variation = Math.sin(2 * Math.PI * 0.2 * time) * 0.04
       const cosmicNoise = (Math.random() - 0.5) * 0.015
       data[i] = (baseHum + variation + cosmicNoise) * this.volume
     }
@@ -257,7 +241,7 @@ export class EnhancedSpaceAudioManager {
 
     const filter = this.audioContext.createBiquadFilter()
     filter.type = "lowpass"
-    filter.frequency.value = 200
+    filter.frequency.value = 150
     filter.Q.value = 1
 
     const gainNode = this.audioContext.createGain()
@@ -270,80 +254,11 @@ export class EnhancedSpaceAudioManager {
     return source
   }
 
-  // Play planet-specific atmospheric sound
-  async playPlanetAtmosphere(planetName: string) {
+  // Planet-specific sound effects
+  playPlanetTransition(planetName: string) {
     if (!this.audioContext) return
 
-    // Stop current planet sound
-    this.stopPlanetSound()
-
-    if (this.audioContext.state === "suspended") {
-      await this.audioContext.resume()
-    }
-
-    let planetSound: AudioBufferSourceNode | null = null
-
-    switch (planetName.toLowerCase()) {
-      case "mars":
-        planetSound = this.createMarsAtmosphere()
-        break
-      case "venus":
-        planetSound = this.createVenusAtmosphere()
-        break
-      case "jupiter":
-        planetSound = this.createJupiterAtmosphere()
-        break
-      case "europa":
-        planetSound = this.createEuropaAtmosphere()
-        break
-      case "titan":
-        planetSound = this.createTitanAtmosphere()
-        break
-      default:
-        return
-    }
-
-    if (planetSound) {
-      this.planetSound = planetSound
-      this.planetSound.start()
-      this.isPlanetSoundPlaying = true
-
-      // Fade in effect
-      const gainNode = this.audioContext.createGain()
-      gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
-      gainNode.gain.linearRampToValueAtTime(this.planetVolume, this.audioContext.currentTime + 2)
-    }
-  }
-
-  // Stop planet-specific sound
-  stopPlanetSound() {
-    if (this.planetSound && this.isPlanetSoundPlaying) {
-      // Fade out effect
-      if (this.audioContext) {
-        const gainNode = this.audioContext.createGain()
-        gainNode.gain.setValueAtTime(this.planetVolume, this.audioContext.currentTime)
-        gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1)
-
-        setTimeout(() => {
-          if (this.planetSound) {
-            this.planetSound.stop()
-            this.planetSound = null
-            this.isPlanetSoundPlaying = false
-          }
-        }, 1000)
-      } else {
-        this.planetSound.stop()
-        this.planetSound = null
-        this.isPlanetSoundPlaying = false
-      }
-    }
-  }
-
-  // Enhanced sound effects
-  playPlanetTransition(fromPlanet: string, toPlanet: string) {
-    if (!this.audioContext) return
-
-    // Create a transition sound effect
+    // Create a whoosh sound for planet transitions
     const oscillator = this.audioContext.createOscillator()
     const gainNode = this.audioContext.createGain()
     const filter = this.audioContext.createBiquadFilter()
@@ -352,42 +267,35 @@ export class EnhancedSpaceAudioManager {
     filter.connect(gainNode)
     gainNode.connect(this.audioContext.destination)
 
-    // Swoosh effect for planet transition
     oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime)
     oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.3)
-    oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.8)
+    oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 1)
 
     filter.type = "bandpass"
     filter.frequency.value = 400
-    filter.Q.value = 10
+    filter.Q.value = 5
 
     gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
     gainNode.gain.linearRampToValueAtTime(0.15, this.audioContext.currentTime + 0.1)
-    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1)
 
     oscillator.start(this.audioContext.currentTime)
-    oscillator.stop(this.audioContext.currentTime + 0.8)
-
-    // Start new planet atmosphere after transition
-    setTimeout(() => {
-      this.playPlanetAtmosphere(toPlanet)
-    }, 800)
+    oscillator.stop(this.audioContext.currentTime + 1)
   }
 
-  // Enhanced beep with planet-specific frequency
+  // Enhanced beep with planet-specific pitch
   playPlanetBeep(planetName: string) {
     if (!this.audioContext) return
 
     const frequencies: { [key: string]: number } = {
-      mars: 440, // A note - rusty and familiar
-      venus: 666, // Devilish frequency for hellish planet
-      jupiter: 220, // Low and massive like the planet
-      europa: 880, // High and crystalline like ice
-      titan: 330, // Mysterious and alien
+      Mars: 600,
+      Venus: 900,
+      Jupiter: 300,
+      Europa: 800,
+      Titan: 500,
     }
 
-    const frequency = frequencies[planetName.toLowerCase()] || 500
-
+    const frequency = frequencies[planetName] || 700
     const oscillator = this.audioContext.createOscillator()
     const gainNode = this.audioContext.createGain()
 
@@ -405,49 +313,55 @@ export class EnhancedSpaceAudioManager {
     oscillator.stop(this.audioContext.currentTime + 0.4)
   }
 
-  // Enhanced static with planet-specific characteristics
-  playPlanetStatic(planetName: string) {
+  // Start planet-specific atmospheric sound
+  async startPlanetSound(planetName: string) {
     if (!this.audioContext) return
 
-    const bufferSize = this.audioContext.sampleRate * 0.6
-    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate)
-    const data = buffer.getChannelData(0)
+    // Stop current planet sound
+    this.stopPlanetSound()
 
-    // Planet-specific static characteristics
-    const staticParams: { [key: string]: { intensity: number; frequency: number } } = {
-      mars: { intensity: 0.08, frequency: 1500 },
-      venus: { intensity: 0.12, frequency: 2500 },
-      jupiter: { intensity: 0.15, frequency: 800 },
-      europa: { intensity: 0.06, frequency: 3000 },
-      titan: { intensity: 0.1, frequency: 1200 },
+    if (this.audioContext.state === "suspended") {
+      await this.audioContext.resume()
     }
 
-    const params = staticParams[planetName.toLowerCase()] || { intensity: 0.08, frequency: 1500 }
-
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() - 0.5) * params.intensity
+    let planetSoundGenerator
+    switch (planetName) {
+      case "Mars":
+        planetSoundGenerator = this.createMarsSound()
+        break
+      case "Venus":
+        planetSoundGenerator = this.createVenusSound()
+        break
+      case "Jupiter":
+        planetSoundGenerator = this.createJupiterSound()
+        break
+      case "Europa":
+        planetSoundGenerator = this.createEuropaSound()
+        break
+      case "Titan":
+        planetSoundGenerator = this.createTitanSound()
+        break
+      default:
+        return
     }
 
-    const source = this.audioContext.createBufferSource()
-    source.buffer = buffer
-
-    const filter = this.audioContext.createBiquadFilter()
-    filter.type = "bandpass"
-    filter.frequency.value = params.frequency
-    filter.Q.value = 0.5
-
-    const gainNode = this.audioContext.createGain()
-    gainNode.gain.setValueAtTime(0.08, this.audioContext.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.6)
-
-    source.connect(filter)
-    filter.connect(gainNode)
-    gainNode.connect(this.audioContext.destination)
-
-    source.start()
+    if (planetSoundGenerator) {
+      this.planetSound = planetSoundGenerator
+      this.planetSound.start()
+      this.isPlanetSoundPlaying = true
+    }
   }
 
-  // General ambient control
+  // Stop planet-specific sound
+  stopPlanetSound() {
+    if (this.planetSound && this.isPlanetSoundPlaying) {
+      this.planetSound.stop()
+      this.planetSound = null
+      this.isPlanetSoundPlaying = false
+    }
+  }
+
+  // Start general ambient sound
   async startAmbient() {
     if (this.isAmbientPlaying || !this.audioContext) return
 
@@ -462,6 +376,7 @@ export class EnhancedSpaceAudioManager {
     }
   }
 
+  // Stop ambient sound
   stopAmbient() {
     if (this.ambientSound && this.isAmbientPlaying) {
       this.ambientSound.stop()
@@ -470,6 +385,7 @@ export class EnhancedSpaceAudioManager {
     }
   }
 
+  // Toggle ambient sound
   async toggleAmbient() {
     if (this.isAmbientPlaying) {
       this.stopAmbient()
@@ -479,7 +395,7 @@ export class EnhancedSpaceAudioManager {
     return this.isAmbientPlaying
   }
 
-  // Volume controls
+  // Set volumes
   setVolume(volume: number) {
     this.volume = Math.max(0, Math.min(1, volume))
   }
@@ -489,18 +405,12 @@ export class EnhancedSpaceAudioManager {
   }
 
   // Status checks
-  isAmbientPlaying(): boolean {
+  isAmbientSoundPlaying(): boolean {
     return this.isAmbientPlaying
   }
 
-  isPlanetSoundPlaying(): boolean {
+  isPlanetSoundActive(): boolean {
     return this.isPlanetSoundPlaying
-  }
-
-  // Cleanup
-  stopAllSounds() {
-    this.stopAmbient()
-    this.stopPlanetSound()
   }
 }
 

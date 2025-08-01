@@ -21,24 +21,26 @@ export function useEnhancedSpaceAudio() {
       setIsAmbientPlaying(playing)
       return playing
     } catch (error) {
-      console.log("Audio toggle failed:", error)
+      console.log("Ambient audio toggle failed:", error)
       return false
     }
   }
 
-  const playPlanetAtmosphere = async (planetName: string) => {
-    if (!isAudioSupported) return
+  const startPlanetSound = async (planetName: string) => {
+    if (!isAudioSupported) return false
 
     try {
-      await enhancedSpaceAudio.playPlanetAtmosphere(planetName)
+      await enhancedSpaceAudio.startPlanetSound(planetName)
       setIsPlanetSoundPlaying(true)
       setCurrentPlanetSound(planetName)
+      return true
     } catch (error) {
-      console.log("Planet atmosphere failed:", error)
+      console.log("Planet sound failed:", error)
+      return false
     }
   }
 
-  const stopPlanetAtmosphere = () => {
+  const stopPlanetSound = () => {
     if (isAudioSupported) {
       enhancedSpaceAudio.stopPlanetSound()
       setIsPlanetSoundPlaying(false)
@@ -46,11 +48,9 @@ export function useEnhancedSpaceAudio() {
     }
   }
 
-  const playPlanetTransition = (fromPlanet: string, toPlanet: string) => {
+  const playPlanetTransition = (planetName: string) => {
     if (isAudioSupported) {
-      enhancedSpaceAudio.playPlanetTransition(fromPlanet, toPlanet)
-      setCurrentPlanetSound(toPlanet)
-      setIsPlanetSoundPlaying(true)
+      enhancedSpaceAudio.playPlanetTransition(planetName)
     }
   }
 
@@ -60,30 +60,10 @@ export function useEnhancedSpaceAudio() {
     }
   }
 
-  const playPlanetStatic = (planetName: string) => {
+  const setVolumes = (ambientVolume: number, planetVolume: number) => {
     if (isAudioSupported) {
-      enhancedSpaceAudio.playPlanetStatic(planetName)
-    }
-  }
-
-  const setVolume = (volume: number) => {
-    if (isAudioSupported) {
-      enhancedSpaceAudio.setVolume(volume)
-    }
-  }
-
-  const setPlanetVolume = (volume: number) => {
-    if (isAudioSupported) {
-      enhancedSpaceAudio.setPlanetVolume(volume)
-    }
-  }
-
-  const stopAllSounds = () => {
-    if (isAudioSupported) {
-      enhancedSpaceAudio.stopAllSounds()
-      setIsAmbientPlaying(false)
-      setIsPlanetSoundPlaying(false)
-      setCurrentPlanetSound(null)
+      enhancedSpaceAudio.setVolume(ambientVolume)
+      enhancedSpaceAudio.setPlanetVolume(planetVolume)
     }
   }
 
@@ -93,13 +73,10 @@ export function useEnhancedSpaceAudio() {
     currentPlanetSound,
     isAudioSupported,
     toggleAmbient,
-    playPlanetAtmosphere,
-    stopPlanetAtmosphere,
+    startPlanetSound,
+    stopPlanetSound,
     playPlanetTransition,
     playPlanetBeep,
-    playPlanetStatic,
-    setVolume,
-    setPlanetVolume,
-    stopAllSounds,
+    setVolumes,
   }
 }

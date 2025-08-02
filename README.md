@@ -10,6 +10,8 @@ Platform: Web-based (HTML/CSS/JavaScript)
 Purpose: To entertain users by delivering random, nonsensical weather reports from imaginary alien planets using playful design, sound effects, and cosmic themes.
 Inspiration: Inspired by the absurdity of over-information and the human obsession with weather apps—even when they serve no real use.
 
+https://v0-space-weather-app-gl.vercel.app/
+
 ### Team Name: [GS]
 
 
